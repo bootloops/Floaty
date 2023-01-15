@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=0.5"/>
+<title>Floaty</title>
+<style type="text/css">
+    html, body {
+        width: 100%;
+        height: 100%;
+        margin: auto;
+        align-content: center;
+        text-align: center;
+        background: linear-gradient(180deg, #fff, #ccc, #Cfc)
+
+    }
+    @keyframes left-scroll {
+        
+        from { background-position: 72000%; };
+        to { background-position: 0%;};
+    }
+     .myscore {
+        color: black;
+        padding: 10px;
+        border: 1px solid black;
+        position: absolute;
+        top: 1.5%;
+        left: 5%;
+        margin: auto;
+        display: block;
+        background-color: cornsilk;
+        border-radius: 20px 20px 20px 20px;
+         
+    }
+    .background-scroll {
+        /*animation: left-scroll 3400s infinite linear;*/
+        background-image: url(./assets/Background.png);
+        background-size: contain;
+        background-repeat: repeat-x;
+        
+    }
+    .background {
+        background-image: url(./assets/Background.png);
+    }
+canvas {
+    display: block;
+    margin: auto;
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+
+}
+    #canvas {
+    display: block;
+    margin: auto;
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+    
+}
+
+    button {
+        padding: 12px;
+        width: 200px;
+        border-radius: 10px 10px 10px 10px;
+        border: 0px inset;
+        background-color: aqua;
+        display: block;
+        margin: auto;
+        box-shadow: 0px 0px 10px black;
+        
+    }
+    button:hover {
+        box-shadow: 0px 0px 0px white;
+    }
+    .accelerate {
+        display: block;
+        margin: auto;
+        width: 15%;
+        height: 25%;
+        border: 1px solid black;
+        border-radius: 50%;
+        position: absolute;
+        left: 5%;
+        top: 60%;
+    }
+    .accelerate:hover {
+        border: 2px outset green;
+        
+        background-color: aquamarine;
+    }
+    .accelerate:active {
+        border: 2px outset green;
+        box-shadow: 0px 0px 10px 5px #3df;
+    }
+    .gamepiece {
+        box-shadow: 0px 0px 10px 5px #3df;
+    }
+
+
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+var myGamePieceHead;
+var myGamePiece = document.getElementById('canvas');
+var myObstacles = [];
+var myScore;
+    
+
+function startGame() {
+    myGamePiece = new component(70, 30, "aqua", 130, 120);
+    //myGamePieceHead = new component(30, 30, "red", 340, 100);
+    myGamePiece.gravity = 0.7;
+    //myGamePieceHead.gravity = 0.07;
+    myScore = new component("30px", "monospace", "white", 280, 40, 'text');
+    
+    myGameArea.start();
+    
+}
+    
+    //coppy
+
+//DRAW GAME CANVAS
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        var x = this.canvas.style
+        this.canvas.id = "canvas"
+        this.canvas.width = 1.5*window.innerWidth/2;
+        this.canvas.height = 2.5*window.innerHeight/4;
+        this.canvas.className = "background-scroll";
+        this.canvas.classList.add("background-static");
+        x.border = "1px solid black";
+        x.borderRadius = "20px 20px 20px 20px";
+        x.marginTop = "40px";
+        x.boxShadow = "0px 5px 15px 3px gray";
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateGameArea, 24);
+        },
+    
+    //NEED TO STOP SCROLL ON CRASH
+    //NEED TO ADD CHARACTER
+    //NEED TO PUT SCORE IN DIV
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    }
+    
+    
+}
+
+function component(width, height, color, x, y, type, style) {
+    this.type = type;
+    this.score = 0;
+    this.width = width;
+    this.height = height;
+    this.speedX = 0;
+    this.speedY = 0;
+    this.style = 0;
+    this.x = x;
+    this.y = y;
+    this.gravity = 0;
+    this.gravitySpeed = 0;
+    this.update = function() {
+        ctx = myGameArea.context;
+        if (this.type == "text") {
+            ctx.font = this.width + " " + this.height;
+            ctx.fillStyle = color;
+            ctx.fillText(this.text, this.x, this.y);
+            ctx.textAlign = "left";
+        } else {
+            ctx.fillStyle = color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+    //this.newPos = function() {
+    //    this.gravitySpeed += this.gravity;
+    //    this.x += this.speedX;
+    //    this.y += this.speedY + this.gravitySpeed;
+    //    this.hitBottom();
+    //}
+    
+    this.newPos = function() {
+        this.hitTop();
+        this.gravitySpeed += this.gravity;
+        this.x += this.speedX;
+        this.y += this.speedY + this.gravitySpeed;
+        
+        this.hitBottom();
+    }
+    //TOP OF CANVAS BOUNDARY
+    this.hitTop = function() {
+        var rooftop = myGameArea.canvas.height - this.height;
+        if (this.y <! rooftop) {
+            this.y = rooftop -= rooftop + this.y;
+            this.gravitySpeed = 0;
+        }
+    }
+    //BOTTOM OF CANVAS BOUNDARY
+    this.hitBottom = function() {
+        var rockbottom = myGameArea.canvas.height - this.height;
+        if (this.y > rockbottom) {
+            this.y = rockbottom;
+            this.gravitySpeed = 0;
+        }
+    }
+    //CRASH INFO
+    this.crashWith = function(otherobj) {
+        var myleft = this.x;
+        var myright = this.x + (this.width);
+        var mytop = this.y;
+        var mybottom = this.y + (this.height);
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + (otherobj.width);
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + (otherobj.height);
+        var crash = true;
+        
+        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+            crash = false;
+        }
+        return crash;
+    }
+}
+// Update the game repeatedly
+function updateGameArea() {
+    
+    
+    var x, height, gap, minHeight, maxHeight, minGap, maxGap;
+    for (i = 0; i < myObstacles.length; i += 1) {
+        if (myGamePiece.crashWith(myObstacles[i])) {
+            //INSERT BACKGROUND STOP ANIMATION
+            // the code below does not work
+            // document.getElementById("canvas").style.animation "animation: left-scroll 3400s infinite linear;";
+            return;
+            
+            
+            
+        } 
+    }
+    myGameArea.clear();
+    myGameArea.frameNo += 1;
+    
+    // change everinterval(number) to increase or decrease the distance between obstacles
+    if (myGameArea.frameNo == 1 || everyinterval(160)) {
+        x = window.innerWidth;
+        minHeight = window.innerHeight/10;
+        maxHeight = window.innerHeight/217;
+        height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight);
+        minGap = 90;
+        maxGap = 220;
+        gap = Math.floor(Math.random()*(maxGap - minGap + 1) + minGap);
+        myObstacles.push(new component(25, height, "rosybrown", x, 0));
+        myObstacles.push(new component(15, height, 'tan', x, 0));
+        myObstacles.push(new component(1, height, 'black', x-1, 0));
+        myObstacles.push(new component(5, height, "black", x+20, 0));
+        myObstacles.push(new component(25, x - height - gap, "black", x-1, height + gap));
+        myObstacles.push(new component(25, x - height - gap, "saddlebrown", x, height + gap));
+        myObstacles.push(new component(15, x - height - gap, "peru", x, height + gap));
+        myObstacles.push(new component(5, x - height - gap, "black", x+20, height + gap));
+        
+    }
+    for (i = 0; i < myObstacles.length; i += 1) {
+        myObstacles[i].x += -5;
+        myObstacles[i].update();
+    }
+    
+    myScore.text="Family Games @ Home" + myGameArea.frameNo;
+    myScore.text="SCORE: " + myGameArea.frameNo;
+    myScore.update();
+    myGamePiece.newPos();
+    
+    
+    //myGamePieceHead.newPos();
+    myGamePiece.update();
+    //myGamePieceHead.update();
+}
+
+function everyinterval(n) {
+    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+    return false;
+}
+
+function restartGame() {
+    location.reload();
+}
+function accelerate(n) {
+    //myGamePieceHead.gravity = n;
+    myGamePiece.gravity = n;
+}
+</script>
+<br>
+    <div id="score" class="myscore">This is the side-scrolling game ive made. </div>
+<button ontouchstart="accelerate(-0.83)" ontouchend="accelerate(0.83)" onkeydown="accelerate(-0.6)" onkeyup="accelerate(0.07)" onmousedown="accelerate(-0.6)" onmouseup="accelerate(0.6)" class="accelerate">FLOAT</button>
+<button onmousedown="restartGame();">RESET</button>
+<p>Use the FLOAT button to stay in the air</p>
+<br>
+    <br>
+        <br>	Developed and maintained by, CarlGeorge<br>
+	Looking into php and more javascript games. Incorporating phaser looks fun.
+               <!--- THIS IS WHERE I FINISHED --->
+</body>
+</html>
